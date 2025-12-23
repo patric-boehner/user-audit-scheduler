@@ -1,13 +1,13 @@
 <?php
 /**
  * Plugin Name: User Audit Scheduler
- * Plugin URI: https://example.com/user-audit-scheduler
+ * Plugin URI: 
  * Description: Streamline periodic WordPress user audits by automating report generation and maintaining change logs
- * Version: 1.0.0
+ * Version: 1.3.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: Your Name
- * Author URI: https://example.com
+ * Author URI: https://patrickboehner.com.com
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: user-audit-scheduler
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants
-define( 'UAS_VERSION', '1.0.0' );
+define( 'UAS_VERSION', '1.3.0' );
 define( 'UAS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'UAS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -28,9 +28,12 @@ require_once UAS_PLUGIN_DIR . 'includes/core/functions.php';
 require_once UAS_PLUGIN_DIR . 'includes/tracking/functions.php';
 require_once UAS_PLUGIN_DIR . 'includes/export/functions.php';
 require_once UAS_PLUGIN_DIR . 'includes/email/functions.php';
+require_once UAS_PLUGIN_DIR . 'includes/scheduler/functions.php';
+require_once UAS_PLUGIN_DIR . 'includes/logging/functions.php';
 require_once UAS_PLUGIN_DIR . 'includes/admin/menu.php';
 require_once UAS_PLUGIN_DIR . 'includes/admin/settings.php';
 require_once UAS_PLUGIN_DIR . 'includes/admin/users-list.php';
+require_once UAS_PLUGIN_DIR . 'includes/admin/audit-logs.php';
 
 /**
  * Initialize the plugin
@@ -43,43 +46,93 @@ function uas_init() {
 	
 	// Set up admin menu
 	add_action( 'admin_menu', 'uas_add_admin_menu' );
+	add_action( 'admin_menu', 'uas_add_audit_logs_menu' );
 	
 	// Register settings
 	add_action( 'admin_init', 'uas_register_settings' );
 	
-	// Handle admin actions (send test email, export CSV)
+	// Handle admin actions (send test email, export CSV, export logs)
 	add_action( 'admin_init', 'uas_handle_admin_actions' );
+	add_action( 'admin_init', 'uas_handle_audit_logs_actions' );
 	
 	// Add Last Login column to users list
 	add_filter( 'manage_users_columns', 'uas_add_last_login_column' );
 	add_filter( 'manage_users_custom_column', 'uas_show_last_login_column', 10, 3 );
 	add_filter( 'manage_users_sortable_columns', 'uas_make_last_login_sortable' );
 	add_action( 'pre_get_users', 'uas_sort_last_login_column' );
+	
+	// Hook for scheduled email sending
+	add_action( 'uas_send_scheduled_email', 'uas_send_scheduled_email_callback' );
+	
+	// Logging hooks - track user changes
+	add_action( 'user_register', 'uas_log_user_created' );
+	add_action( 'set_user_role', 'uas_log_role_change', 10, 3 );
+	add_action( 'delete_user', 'uas_log_user_deleted' );
+	add_action( 'profile_update', 'uas_log_profile_update', 10, 2 );
 }
 add_action( 'plugins_loaded', 'uas_init' );
 
 /**
+ * Add settings link to plugin row actions
+ * 
+ * Adds a "Settings" link on the Plugins page for quick access
+ * 
+ * @param array $links Existing plugin action links
+ * @return array Modified links with Settings added
+ */
+function uas_add_settings_link( $links ) {
+	$settings_link = '<a href="' . admin_url( 'users.php?page=user-audit-settings' ) . '">Settings</a>';
+	array_unshift( $links, $settings_link );
+	return $links;
+}
+add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'uas_add_settings_link' );
+
+/**
  * Activation hook - runs when plugin is activated
  * 
- * Sets default options if they don't exist
+ * Sets default options if they don't exist and creates database table
  */
 function uas_activate() {
+	// Get all non-subscriber roles for default
+	global $wp_roles;
+	$default_roles = array();
+	if ( ! empty( $wp_roles->get_names() ) ) {
+		foreach ( $wp_roles->get_names() as $role_slug => $role_name ) {
+			if ( $role_slug !== 'subscriber' ) {
+				$default_roles[] = $role_slug;
+			}
+		}
+	}
+	
 	// Set default options if they don't exist
 	$default_options = array(
-		'email_recipients' => get_option( 'admin_email' ), // Default to site admin email
-		'email_subject'    => 'WordPress User Audit Report',
+		'email_recipients'     => get_option( 'admin_email' ),
+		'email_subject'        => 'WordPress User Audit Report',
+		'schedule_enabled'     => false,
+		'schedule_frequency'   => 'monthly',
+		'included_roles'       => $default_roles,
 	);
 	
 	add_option( 'uas_settings', $default_options );
+	
+	// Create audit log database table
+	uas_create_log_table();
 }
 register_activation_hook( __FILE__, 'uas_activate' );
 
 /**
  * Deactivation hook - runs when plugin is deactivated
  * 
- * Currently does nothing, but available for future cleanup
+ * Removes all scheduled cron events
  */
 function uas_deactivate() {
-	// Future: Remove scheduled cron events here when we add Phase 2
+	wp_clear_scheduled_hook( 'uas_send_scheduled_email' );
+	
+	// Update settings to mark schedule as disabled
+	$settings = get_option( 'uas_settings', array() );
+	if ( isset( $settings['schedule_enabled'] ) && $settings['schedule_enabled'] ) {
+		$settings['schedule_enabled'] = false;
+		update_option( 'uas_settings', $settings );
+	}
 }
 register_deactivation_hook( __FILE__, 'uas_deactivate' );

@@ -66,7 +66,7 @@ function uas_get_email_recipients() {
 	$settings = get_option( 'uas_settings', array() );
 	$recipients_string = isset( $settings['email_recipients'] ) ? $settings['email_recipients'] : '';
 	
-	// Split by newlines and commas
+	// Split by commas and newlines (for backward compatibility)
 	$recipients = preg_split( '/[\n,]+/', $recipients_string );
 	
 	// Trim and validate each email
@@ -93,7 +93,7 @@ function uas_get_email_recipients() {
 function uas_generate_email_html( $users ) {
 	$site_name = get_bloginfo( 'name' );
 	$site_url = get_site_url();
-	$date = date( 'F j, Y' );
+	$date = wp_date( 'F j, Y' );
 	
 	// Start building HTML
 	$html = '<!DOCTYPE html>';

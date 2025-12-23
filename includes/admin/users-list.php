@@ -48,11 +48,11 @@ function uas_show_last_login_column( $output, $column_name, $user_id ) {
 			$display = $time_diff . ' ago';
 		} else {
 			// After 24 hours, show formatted date
-			$display = date( 'M j, Y', $last_login );
+			$display = wp_date( 'M j, Y', $last_login );
 		}
 		
 		// Always show full date/time on hover
-		$full_date = date( 'F j, Y \a\t g:i A', $last_login );
+		$full_date = wp_date( 'F j, Y \a\t g:i A', $last_login );
 		
 		return '<span title="' . esc_attr( $full_date ) . '">' . esc_html( $display ) . '</span>';
 	}
@@ -90,7 +90,9 @@ function uas_sort_last_login_column( $query ) {
 	}
 	
 	// Check if sorting by last_login
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only sorting parameter from WordPress core users list table
 	if ( isset( $_GET['orderby'] ) && $_GET['orderby'] === 'last_login' ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only sorting parameter from WordPress core users list table
 		$order = isset( $_GET['order'] ) && $_GET['order'] === 'asc' ? 'ASC' : 'DESC';
 		
 		// Modify query to sort by meta value

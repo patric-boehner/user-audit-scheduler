@@ -25,38 +25,39 @@ function uas_export_csv() {
 	}
 	
 	// Set headers for CSV download
-	$filename = 'user-audit-' . date( 'Y-m-d-His' ) . '.csv';
+	$filename = 'user-audit-' . gmdate( 'Y-m-d-His' ) . '.csv';
 	header( 'Content-Type: text/csv; charset=utf-8' );
 	header( 'Content-Disposition: attachment; filename=' . $filename );
 	header( 'Pragma: no-cache' );
 	header( 'Expires: 0' );
 	
-	// Open output stream
-	$output = fopen( 'php://output', 'w' );
+	// Build CSV content
+	$csv_data = array();
 	
-	// Write CSV header row
-	fputcsv( $output, array(
+	// Add header row
+	$csv_data[] = array(
 		'Username',
 		'Display Name',
 		'Email',
 		'Role',
 		'Last Login',
 		'Edit URL',
-	) );
+	);
 	
-	// Write data rows
+	// Add data rows
 	foreach ( $users as $user ) {
-		fputcsv( $output, array(
+		$csv_data[] = array(
 			$user['username'],
 			$user['display_name'],
 			$user['email'],
 			$user['role'],
 			uas_get_user_last_login_timestamp( $user['ID'] ),
 			$user['edit_url'],
-		) );
+		);
 	}
 	
-	fclose( $output );
+	// Output CSV
+	uas_output_csv( $csv_data );
 	exit;
 }
 
@@ -75,32 +76,45 @@ function uas_get_csv_content() {
 		return '';
 	}
 	
-	// Use output buffering to capture CSV content
-	ob_start();
-	$output = fopen( 'php://output', 'w' );
+	// Build CSV data array
+	$csv_data = array();
 	
-	// Write CSV header row
-	fputcsv( $output, array(
+	// Add header row
+	$csv_data[] = array(
 		'Username',
 		'Display Name',
 		'Email',
 		'Role',
 		'Last Login',
 		'Edit URL',
-	) );
+	);
 	
-	// Write data rows
+	// Add data rows
 	foreach ( $users as $user ) {
-		fputcsv( $output, array(
+		$csv_data[] = array(
 			$user['username'],
 			$user['display_name'],
 			$user['email'],
 			$user['role'],
 			uas_get_user_last_login_timestamp( $user['ID'] ),
 			$user['edit_url'],
-		) );
+		);
 	}
 	
-	fclose( $output );
+	// Use output buffering to capture CSV
+	ob_start();
+	
+	foreach ( $csv_data as $row ) {
+		$escaped_row = array();
+		foreach ( $row as $field ) {
+			if ( strpos( $field, ',' ) !== false || strpos( $field, '"' ) !== false || strpos( $field, "\n" ) !== false ) {
+				$field = '"' . str_replace( '"', '""', $field ) . '"';
+			}
+			$escaped_row[] = $field;
+		}
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSV data is manually escaped above per CSV standards
+		echo implode( ',', $escaped_row ) . "\n";
+	}
+	
 	return ob_get_clean();
 }
