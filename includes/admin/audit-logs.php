@@ -108,18 +108,10 @@ function uas_render_audit_logs_page() {
 	<div class="wrap" style="max-width: 1400px;">
 		<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 		
-		<div style="background: #fff; border: 1px solid #ccd0d4; padding: 20px; margin: 20px 0;">
+		<div style="background: #fff; border: 1px solid #ccd0d4; padding: 20px; margin: 20px 0; max-width: 800px;">
 			<h2>About Audit Logs</h2>
-			<p>This page shows a complete history of security-relevant user changes. The system uses conditional logging to focus on what matters:</p>
-			<ul style="margin-left: 20px;">
-				<li><strong>Users created with elevated roles</strong> - Administrator, Editor, etc.</li>
-				<li><strong>Role changes that cross the security boundary</strong> - Subscriber promoted to Editor, Editor demoted to Subscriber, etc.</li>
-				<li><strong>Elevated role changes</strong> - Editor to Administrator, etc.</li>
-				<li><strong>Profile updates for elevated roles</strong> - Email and display name changes</li>
-				<li><strong>Deletions of elevated roles</strong> - When admins, editors, etc. are removed</li>
-			</ul>
-			<p><strong>Not logged:</strong> Subscriber registrations, subscriber email changes, subscriber deletions, and other non-security-relevant activity. This keeps the log focused and prevents database bloat on membership sites.</p>
-			<p><strong>All logs are permanent:</strong> Entries cannot be modified or deleted.</p>
+			<p>Review recent security-relevant user changes. Use filters to focus on specific roles, change types, or date ranges.</p>
+			<p><strong>Note:</strong> Entries cannot be modified or deleted. Logs older than 1 year are automatically deleted to prevent unbounded database growth. This can be changed via the <code>uas_log_retention_days</code> filter if longer retention is required for compliance.</p>
 		</div>
 		
 		<!-- Filters -->
@@ -214,8 +206,8 @@ function uas_render_audit_logs_page() {
 								<?php endif; ?>
 							</td>
 							<td><?php echo esc_html( uas_format_change_type( $log->change_type ) ); ?></td>
-							<td><?php echo esc_html( $log->old_value ? $log->old_value : 'â€”' ); ?></td>
-							<td><?php echo esc_html( $log->new_value ? $log->new_value : 'â€”' ); ?></td>
+							<td><?php echo esc_html( $log->old_value ? $log->old_value : '-' ); ?></td>
+							<td><?php echo esc_html( $log->new_value ? $log->new_value : '-' ); ?></td>
 							<td><?php echo esc_html( $log->notes ); ?></td>
 							<td><?php echo esc_html( $log->changed_by_username ); ?></td>
 						</tr>

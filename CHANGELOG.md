@@ -2,13 +2,53 @@
 
 All notable changes to User Audit Scheduler will be documented in this file.
 
-## [1.3.0] - 2024-12-22
+## [1.3.1] - 2025-12-23
+
+### Added
+- **Automatic log cleanup**: Logs older than 1 year are automatically deleted to prevent unbounded database growth
+- Daily scheduled cleanup runs at 3am via WordPress cron
+- Filter hook `uas_log_retention_days` for customizing retention period (default: 365 days)
+- Retention policy note added to Audit Logs page
+
+### Changed - Architectural Improvement
+- Centralized all audit logging decisions into single `uas_should_log_event()` function
+- All logging functions now delegate decision-making to this central point of truth
+- Prevents accidental logging of non-security-relevant events
+- Makes logging intent explicit and easier to debug
+- Reduces risk of future drift as features are added
+
+### Technical
+- Added `uas_should_log_event()` as the single source of truth for all logging decisions
+- Refactored `uas_log_user_created()` to use centralized decision function
+- Refactored `uas_log_role_change()` to use centralized decision function  
+- Refactored `uas_log_user_deleted()` to use centralized decision function with explicit role context
+- Refactored `uas_log_profile_update()` to use centralized decision function
+- Added comprehensive documentation explaining architectural reasoning
+- Added filter hook `uas_should_log_event` for site-specific logging overrides
+- Logging functions are now "dumb" - they only prepare log entries, not make decisions
+- Added defensive array normalization to prevent edge cases from malformed filters or plugin interference
+- User deletion now explicitly passes roles in context rather than relying on hook timing assumptions
+- Added `uas_cleanup_old_logs_callback()` for automatic log maintenance
+- Cleanup runs daily at 3am, logging operations are logged for transparency
+- Cleanup respects filter hook for custom retention periods (365 days default, 0 = never delete)
+
+### Benefits
+- **Prevents accidental database bloat**: No more risk of logging thousands of subscriber events
+- **Easier debugging**: One place to look when asking "why was this logged?"
+- **Safer feature additions**: New code must pass through the central gate
+- **Clear intent**: Decision logic is explicit, not scattered across multiple functions
+- **Future-proof**: Reduces risk of silent drift as plugin evolves
+
+### Breaking Changes
+None - behavior is identical to 1.3.0, only internal architecture changed
+
+## [1.3.0] - 2025-12-22
 
 ### Added - Phase 3: User Change Logging
 - Custom database table for storing audit logs
 - Automatic tracking of security-relevant user changes with conditional logging
 - Tracks user creation for elevated roles (Administrator, Editor, etc.)
-- Tracks all role changes that cross the security boundary (subscriber→editor, editor→admin, etc.)
+- Tracks all role changes that cross the security boundary (subscriberâ†’editor, editorâ†’admin, etc.)
 - Tracks user deletions for elevated roles
 - Tracks profile updates (email and display name changes) for elevated roles
 - New "Audit Logs" admin page under Users menu
@@ -21,8 +61,8 @@ All notable changes to User Audit Scheduler will be documented in this file.
 
 ### Changed
 - **Implemented conditional logging approach**: Only security-relevant changes are logged to prevent database bloat on membership sites
-- Subscriber-only activity (registrations, email changes, deletions, subscriber→contributor changes) is not logged
-- Role changes that cross the audited boundary ARE logged (subscriber→editor, editor→subscriber)
+- Subscriber-only activity (registrations, email changes, deletions, subscriberâ†’contributor changes) is not logged
+- Role changes that cross the audited boundary ARE logged (subscriberâ†’editor, editorâ†’subscriber)
 - Role selection settings control which roles are considered "audited" (security-relevant)
 - This approach balances forensic value with database efficiency
 
@@ -41,7 +81,7 @@ All notable changes to User Audit Scheduler will be documented in this file.
 - Enhanced uninstall script to remove audit log table
 - Conditional logging at the INSERT level prevents unnecessary database growth
 
-## [1.2.0] - 2024-12-21
+## [1.2.0] - 2025-12-21
 
 ### Added
 - Role selection settings: Admins can now choose which user roles to include in audit reports
@@ -54,7 +94,7 @@ All notable changes to User Audit Scheduler will be documented in this file.
 - Improved user filtering logic to support configurable role inclusion
 - Updated plugin activation to set default included roles
 
-## [1.1.0] - 2024-12-20
+## [1.1.0] - 2025-12-20
 
 ### Added
 - Automated email scheduling with configurable frequency (weekly, monthly, quarterly)
@@ -81,7 +121,7 @@ All notable changes to User Audit Scheduler will be documented in this file.
 - Enhanced error logging for scheduled email operations
 - Automatic rescheduling after successful email send
 
-## [1.0.0] - 2024-12-19
+## [1.0.0] - 2025-12-19
 
 ### Added
 - Core user tracking functionality with last login timestamps

@@ -340,17 +340,10 @@ function uas_render_settings_page() {
 		
 		<?php settings_errors( 'uas_messages' ); ?>
 		
-		<div style="background: #fff; border: 1px solid #ccd0d4; padding: 20px; margin: 20px 0;">
+		<div style="background: #fff; border: 1px solid #ccd0d4; padding: 20px; margin: 20px 0; max-width: 800px;">
 			<h2>About This Plugin</h2>
-			<p>User Audit Scheduler helps you maintain security by keeping track of who has elevated permissions on your WordPress site. Currently tracking <strong><?php echo esc_html( $user_count ); ?></strong> user<?php echo $user_count !== 1 ? 's' : ''; ?> with elevated permissions.</p>
-			<p><strong>Current Features:</strong></p>
-			<ul style="margin-left: 20px;">
-				<li>Last login tracking for all users</li>
-				<li>Automated email reports (weekly, monthly, quarterly)</li>
-				<li>Comprehensive audit logging with conditional logging</li>
-				<li>Filterable audit logs by user, change type, and date range</li>
-				<li>CSV export for both user lists and audit logs</li>
-			</ul>
+			<p>Configure which user roles to audit. By default, all roles except subscribers are included. Only security-relevant changes are tracked: role changes, new users, deleted users, and email/display name updates.</p>
+			<p>Currently tracking <strong><?php echo esc_html( $user_count ); ?></strong> user<?php echo $user_count !== 1 ? 's' : ''; ?> with elevated permissions.</p>
 		</div>
 		
 		<!-- Settings Form -->

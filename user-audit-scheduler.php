@@ -2,11 +2,11 @@
 /**
  * Plugin Name: User Audit Scheduler
  * Plugin URI: 
- * Description: Streamline periodic WordPress user audits by automating report generation and maintaining change logs
- * Version: 1.3.0
+ * Description: Streamline your WordPress user audits with automated logging of role changes, profile updates, and account creations/deletions.
+ * Version: 1.3.1
  * Requires at least: 5.8
  * Requires PHP: 7.4
- * Author: Your Name
+ * Author: Patrick Boehner
  * Author URI: https://patrickboehner.com.com
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants
-define( 'UAS_VERSION', '1.3.0' );
+define( 'UAS_VERSION', '1.3.1' );
 define( 'UAS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'UAS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -69,6 +69,9 @@ function uas_init() {
 	add_action( 'set_user_role', 'uas_log_role_change', 10, 3 );
 	add_action( 'delete_user', 'uas_log_user_deleted' );
 	add_action( 'profile_update', 'uas_log_profile_update', 10, 2 );
+
+	// Log cleanup - runs daily
+	add_action( 'uas_cleanup_old_logs', 'uas_cleanup_old_logs_callback' );
 }
 add_action( 'plugins_loaded', 'uas_init' );
 
@@ -117,6 +120,11 @@ function uas_activate() {
 	
 	// Create audit log database table
 	uas_create_log_table();
+
+	// Schedule daily log cleanup at 3am
+	if ( ! wp_next_scheduled( 'uas_cleanup_old_logs' ) ) {
+		wp_schedule_event( strtotime( 'tomorrow 3:00am' ), 'daily', 'uas_cleanup_old_logs' );
+	}
 }
 register_activation_hook( __FILE__, 'uas_activate' );
 
@@ -127,6 +135,7 @@ register_activation_hook( __FILE__, 'uas_activate' );
  */
 function uas_deactivate() {
 	wp_clear_scheduled_hook( 'uas_send_scheduled_email' );
+	wp_clear_scheduled_hook( 'uas_cleanup_old_logs' );
 	
 	// Update settings to mark schedule as disabled
 	$settings = get_option( 'uas_settings', array() );

@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 function uas_add_admin_menu() {
 	// Main settings page under Users menu
 	add_users_page(
-		'User Audit Settings',           // Page title
+		'User Audit Scheduler Settings',           // Page title
 		'User Audit',                    // Menu title
 		'manage_options',                 // Capability required
 		'user-audit-settings',            // Menu slug

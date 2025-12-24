@@ -173,6 +173,9 @@ function uas_output_csv( $data ) {
 		// Manually build CSV row to avoid fopen/fclose
 		$escaped_row = array();
 		foreach ( $row as $field ) {
+			// Convert null to empty string for CSV output
+			$field = (string) $field;
+			
 			// Escape fields that contain commas, quotes, or newlines
 			if ( strpos( $field, ',' ) !== false || strpos( $field, '"' ) !== false || strpos( $field, "\n" ) !== false ) {
 				$field = '"' . str_replace( '"', '""', $field ) . '"';
