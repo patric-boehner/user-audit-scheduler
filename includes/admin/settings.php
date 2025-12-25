@@ -221,7 +221,7 @@ function uas_email_recipients_callback() {
  */
 function uas_email_subject_callback() {
 	$settings = get_option( 'uas_settings', array() );
-	$value = isset( $settings['email_subject'] ) ? $settings['email_subject'] : 'WordPress User Audit Report';
+	$value = isset( $settings['email_subject'] ) ? $settings['email_subject'] : 'User Audit Report: Review Changes';
 	
 	echo '<input type="text" name="uas_settings[email_subject]" value="' . esc_attr( $value ) . '" class="regular-text">';
 	echo '<p class="description">The subject line for audit report emails.</p>';

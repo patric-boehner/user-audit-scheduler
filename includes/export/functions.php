@@ -17,6 +17,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Terminates script execution after sending file
  */
 function uas_export_csv() {
+	// Check user capabilities
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( 'You do not have sufficient permissions to export user data.' );
+	}
+	
 	// Get audit data
 	$users = uas_get_audit_users();
 	
@@ -69,7 +74,8 @@ function uas_export_csv() {
  * 
  * @return string CSV content
  */
-function uas_get_csv_content() {
+function uas_get_csv_content() {	
+	// Get audit data
 	$users = uas_get_audit_users();
 	
 	if ( empty( $users ) ) {

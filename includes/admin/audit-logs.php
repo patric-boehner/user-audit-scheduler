@@ -270,6 +270,11 @@ function uas_format_change_type( $change_type ) {
  * Terminates script execution after sending file
  */
 function uas_export_logs_csv() {
+	// Check user capabilities
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( 'You do not have sufficient permissions to export audit logs.' );
+	}
+	
 	// Get filter parameters from URL (same as display page)
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only filter parameters, nonce checked in calling function
 	$filter_user_id = isset( $_GET['filter_user'] ) ? intval( $_GET['filter_user'] ) : null;

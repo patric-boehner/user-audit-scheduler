@@ -7,7 +7,7 @@
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: Patrick Boehner
- * Author URI: https://patrickboehner.com.com
+ * Author URI: https://patrickboehner.com
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: user-audit-scheduler
@@ -110,7 +110,7 @@ function uas_activate() {
 	// Set default options if they don't exist
 	$default_options = array(
 		'email_recipients'     => get_option( 'admin_email' ),
-		'email_subject'        => 'WordPress User Audit Report',
+		'email_subject'        => 'User Audit Report: Review Changes',
 		'schedule_enabled'     => false,
 		'schedule_frequency'   => 'monthly',
 		'included_roles'       => $default_roles,

@@ -397,6 +397,12 @@ function uas_log_profile_update( $user_id, $old_user_data ) {
  * @return array Array of log entries
  */
 function uas_get_log_entries( $args = array() ) {
+	// Check user capabilities
+	// Allow if user has permission OR if running via WP-Cron (for cleanup)
+	if ( ! wp_doing_cron() && ! current_user_can( 'manage_options' ) ) {
+		return array();
+	}
+
 	global $wpdb;
 	
 	$table_name = $wpdb->prefix . 'uas_audit_log';

@@ -19,6 +19,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array Array of user data objects
  */
 function uas_get_audit_users() {
+	// Check user capabilities
+	// Allow if user has permission OR if running via WP-Cron (for scheduled emails)
+	if ( ! wp_doing_cron() && ! current_user_can( 'manage_options' ) ) {
+		return array();
+	}
+	
 	// Get settings to determine which roles to include
 	$settings = get_option( 'uas_settings', array() );
 	$included_roles = isset( $settings['included_roles'] ) ? $settings['included_roles'] : array();
