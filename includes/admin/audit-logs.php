@@ -200,9 +200,10 @@ function uas_render_audit_logs_page() {
 						<tr>
 							<td><?php echo esc_html( wp_date( 'M j, Y g:i A', strtotime( $log->change_date ) ) ); ?></td>
 							<td>
-								<strong><?php echo esc_html( $log->username ); ?></strong>
 								<?php if ( $log->change_type !== 'user_deleted' && get_userdata( $log->user_id ) ) : ?>
-									<br><a href="<?php echo esc_url( get_edit_user_link( $log->user_id ) ); ?>">View User</a>
+									<strong><a href="<?php echo esc_url( get_edit_user_link( $log->user_id ) ); ?>"><?php echo esc_html( $log->username ); ?></a></strong>
+								<?php else : ?>
+									<strong><?php echo esc_html( $log->username ); ?></strong>
 								<?php endif; ?>
 							</td>
 							<td><?php echo esc_html( uas_format_change_type( $log->change_type ) ); ?></td>
