@@ -71,7 +71,7 @@ function uas_get_recurrence_name( $frequency ) {
  * Calculate next schedule time based on frequency
  * 
  * Returns timestamp for when the next email should be sent
- * Schedules for Monday 9am for weekly, 1st of month for monthly/quarterly
+ * All emails scheduled for midnight (12:00 AM) in site's timezone
  * 
  * @param string $frequency Frequency setting
  * @return int Unix timestamp for next scheduled send
@@ -81,21 +81,21 @@ function uas_get_next_schedule_time( $frequency ) {
 	
 	switch ( $frequency ) {
 		case 'weekly':
-			// Schedule for next Monday at 9am
-			$next_monday = strtotime( 'next Monday 9:00', $current_time );
-			// If it's already Monday and past 9am, schedule for next week
+			// Schedule for next Monday at midnight
+			$next_monday = strtotime( 'next Monday 00:00', $current_time );
+			// If it's already Monday and past midnight, schedule for next week
 			if ( $next_monday <= $current_time ) {
-				$next_monday = strtotime( 'next Monday 9:00', $current_time + WEEK_IN_SECONDS );
+				$next_monday = strtotime( 'next Monday 00:00', $current_time + WEEK_IN_SECONDS );
 			}
 			return $next_monday;
 			
 		case 'monthly':
-			// Schedule for 1st of next month at 9am
-			$next_month = strtotime( 'first day of next month 9:00', $current_time );
+			// Schedule for 1st of next month at midnight
+			$next_month = strtotime( 'first day of next month 00:00', $current_time );
 			return $next_month;
 			
 		case 'quarterly':
-			// Schedule for 1st of next quarter at 9am
+			// Schedule for 1st of next quarter at midnight
 			$current_month = wp_date( 'n', $current_time );
 			$current_year = wp_date( 'Y', $current_time );
 			
@@ -114,29 +114,12 @@ function uas_get_next_schedule_time( $frequency ) {
 				$next_quarter_year = $current_year + 1;
 			}
 			
-			return strtotime( $next_quarter_year . '-' . $next_quarter_month . '-01 09:00' );
+			return strtotime( $next_quarter_year . '-' . $next_quarter_month . '-01 00:00' );
 			
 		default:
-			// Default to one week from now
-			return $current_time + WEEK_IN_SECONDS;
+			// Default to one week from now at midnight
+			return strtotime( 'tomorrow 00:00', $current_time + WEEK_IN_SECONDS );
 	}
-}
-
-/**
- * Add custom recurrences to WordPress cron schedules
- * 
- * DEPRECATED: No longer used as of version 1.1.0
- * We now use single events that reschedule themselves instead of recurring events
- * This function is kept for backwards compatibility only
- * 
- * @deprecated 1.1.0
- * @param array $schedules Existing schedules
- * @return array Modified schedules
- */
-function uas_add_cron_schedules( $schedules ) {
-	// No longer adds custom schedules
-	// Single events are used instead
-	return $schedules;
 }
 
 /**
@@ -150,8 +133,10 @@ function uas_send_scheduled_email_callback() {
 	
 	// Log the result for debugging
 	if ( is_wp_error( $result ) ) {
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Logging errors for debugging scheduled emails
 		error_log( 'User Audit Scheduler: Failed to send scheduled email - ' . $result->get_error_message() );
 	} else {
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Logging success for audit trail
 		error_log( 'User Audit Scheduler: Successfully sent scheduled email' );
 	}
 	
@@ -162,6 +147,7 @@ function uas_send_scheduled_email_callback() {
 		$next_timestamp = uas_get_next_schedule_time( $settings['schedule_frequency'] );
 		wp_schedule_single_event( $next_timestamp, 'uas_send_scheduled_email' );
 		
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Logging next schedule for transparency
 		error_log( 'User Audit Scheduler: Next email scheduled for ' . wp_date( 'Y-m-d H:i:s', $next_timestamp ) );
 	}
 }
