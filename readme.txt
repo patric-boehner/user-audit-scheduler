@@ -15,7 +15,8 @@ Streamline WordPress user audits by tracking elevated roles, logging security-re
 User Audit Scheduler helps WordPress administrators maintain a complete audit trail of user activity. Focused on security-relevant events, it reduces database clutter while providing actionable insights.
 
 **Key Features:**
-* **Last Login Tracking:** Automatically track when users log in.
+* **Last Login Tracking:** Automatically track when users log in, visible on user profiles and the users list.
+* **User Profile Integration:** View last login time and activity log link directly on user profile pages.
 * **Automated Audit Emails:** Schedule weekly, monthly, or quarterly reports.
 * **Manual Reports:** Send audit emails on demand.
 * **CSV Export:** Download user data or audit logs for analysis.
@@ -29,6 +30,11 @@ User Audit Scheduler helps WordPress administrators maintain a complete audit tr
 * Excludes routine Subscriber activity by default to prevent database bloat.
 * Logs persist even if a user is deleted.
 * Extensible via filters for site-specific needs.
+
+**User Profile Integration:**
+* Last login time displayed on all user profiles.
+* "View Activity Log" link for tracked roles (visible to administrators only).
+* Quick access to filtered audit logs directly from user edit screens.
 
 == Installation ==
 
@@ -57,12 +63,19 @@ Logs are automatically deleted after 1 year by default. Customize retention usin
 = Does it support custom user roles? =
 Yes. Any custom roles created by other plugins appear in role selection options.
 
+= Can users see their own activity logs? =
+No. The activity log link on user profiles is only visible to administrators with the `manage_options` capability.
+
+= Does last login tracking work for all users? =
+Yes. Last login time is tracked for all users regardless of role and appears on their profile page and in the users list.
+
 == Screenshots ==
 
 1. Settings page with email configuration and role selection
 2. Audit Logs page showing filterable change history
 3. Last Login column in WordPress Users list
-4. Sample automated email report
+4. User profile with last login and activity log link
+5. Sample automated email report
 
 == Changelog ==
 
@@ -92,7 +105,7 @@ Yes. Any custom roles created by other plugins appear in role selection options.
 
 This plugin stores:
 
-* Last login timestamps (user meta)
+* Last login timestamps (user meta) - tracked for all users
 * Plugin settings (wp_options)
 * Audit logs of security-relevant changes (custom table)
 
