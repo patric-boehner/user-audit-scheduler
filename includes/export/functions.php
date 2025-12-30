@@ -41,6 +41,7 @@ function uas_export_csv() {
 	
 	// Add header row
 	$csv_data[] = array(
+		'User ID',
 		'Username',
 		'Display Name',
 		'Email',
@@ -48,10 +49,11 @@ function uas_export_csv() {
 		'Last Login',
 		'Edit URL',
 	);
-	
+
 	// Add data rows
 	foreach ( $users as $user ) {
 		$csv_data[] = array(
+			$user['ID'],
 			$user['username'],
 			$user['display_name'],
 			$user['email'],
