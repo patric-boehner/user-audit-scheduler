@@ -33,10 +33,18 @@ function uas_send_audit_email() {
 	if ( empty( $recipients ) ) {
 		return new WP_Error( 'no_recipients', 'No email recipients configured. Please add at least one email address in the settings.' );
 	}
-	
+
+	// Get site name for default subject
+	$site_name = get_bloginfo( 'name' );
+
 	// Get email subject
 	$subject = isset( $settings['email_subject'] ) ? $settings['email_subject'] : 'User Audit Report: Review Changes for ' . $site_name;
 	$subject = sanitize_text_field( $subject );
+
+	// If subject is empty after sanitization, use default
+	if ( empty( $subject ) ) {
+		$subject = 'User Audit Report: Review Changes for ' . $site_name;
+	}
 	// Remove any newlines to prevent email header injection
 	$subject = str_replace( array( "\r", "\n" ), '', $subject );
 	

@@ -115,7 +115,12 @@ function uas_sanitize_settings( $input ) {
 	
 	// Sanitize email subject
 	if ( isset( $input['email_subject'] ) ) {
-		$sanitized['email_subject'] = sanitize_text_field( $input['email_subject'] );
+		$subject = sanitize_text_field( $input['email_subject'] );
+		// If empty, use default
+		if ( empty( $subject ) ) {
+			$subject = 'User Audit Report: Review Changes for ' . get_bloginfo( 'name' );
+		}
+		$sanitized['email_subject'] = $subject;
 	}
 	
 	// Sanitize schedule enabled (checkbox)
@@ -194,6 +199,18 @@ function uas_sanitize_settings( $input ) {
 			);
 		}
 	}
+
+	// Add general settings saved message if no other message was added
+	// Check if we've already added a schedule-related message
+	$existing_errors = get_settings_errors( 'uas_messages' );
+	if ( empty( $existing_errors ) ) {
+		add_settings_error(
+			'uas_messages',
+			'uas_settings_saved',
+			'Settings saved successfully.',
+			'success'
+		);
+	}
 	
 	return $sanitized;
 }
@@ -266,9 +283,9 @@ function uas_schedule_frequency_callback() {
 	$frequency = isset( $settings['schedule_frequency'] ) ? $settings['schedule_frequency'] : 'monthly';
 	
 	echo '<select name="uas_settings[schedule_frequency]">';
-	echo '<option value="weekly"' . selected( $frequency, 'weekly', false ) . '>Weekly (Every Monday at 9am)</option>';
-	echo '<option value="monthly"' . selected( $frequency, 'monthly', false ) . '>Monthly (1st of each month at 9am)</option>';
-	echo '<option value="quarterly"' . selected( $frequency, 'quarterly', false ) . '>Quarterly (Jan 1, Apr 1, Jul 1, Oct 1 at 9am)</option>';
+	echo '<option value="weekly"' . selected( $frequency, 'weekly', false ) . '>Weekly (Every Monday at midnight)</option>';
+	echo '<option value="monthly"' . selected( $frequency, 'monthly', false ) . '>Monthly (1st of each month at midnight)</option>';
+	echo '<option value="quarterly"' . selected( $frequency, 'quarterly', false ) . '>Quarterly (Jan 1, Apr 1, Jul 1, Oct 1 at midnight)</option>';
 	echo '</select>';
 	echo '<p class="description">How often should automated audit emails be sent?</p>';
 }
