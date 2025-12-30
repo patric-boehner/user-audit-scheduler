@@ -34,6 +34,14 @@ require_once UAS_PLUGIN_DIR . 'includes/admin/menu.php';
 require_once UAS_PLUGIN_DIR . 'includes/admin/settings.php';
 require_once UAS_PLUGIN_DIR . 'includes/admin/users-list.php';
 require_once UAS_PLUGIN_DIR . 'includes/admin/audit-logs.php';
+require_once UAS_PLUGIN_DIR . 'includes/admin/user-profile.php';
+
+// Debug check
+if ( ! function_exists( 'uas_render_user_audit_meta_box' ) ) {
+    error_log( 'UAS: user-profile.php loaded but function not found!' );
+} else {
+    error_log( 'UAS: uas_render_user_audit_meta_box function exists!' );
+}
 
 /**
  * Initialize the plugin
@@ -60,6 +68,10 @@ function uas_init() {
 	add_filter( 'manage_users_custom_column', 'uas_show_last_login_column', 10, 3 );
 	add_filter( 'manage_users_sortable_columns', 'uas_make_last_login_sortable' );
 	add_action( 'pre_get_users', 'uas_sort_last_login_column' );
+
+	// Add user profile audit information
+	add_action( 'show_user_profile', 'uas_render_user_audit_meta_box');
+	add_action( 'edit_user_profile', 'uas_render_user_audit_meta_box');
 	
 	// Hook for scheduled email sending
 	add_action( 'uas_send_scheduled_email', 'uas_send_scheduled_email_callback' );
